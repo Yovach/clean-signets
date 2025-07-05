@@ -1,5 +1,6 @@
 import * as path from "jsr:@std/path";
 import { JSDOM } from "npm:jsdom";
+import { encodeBase64 } from "jsr:@std/encoding/base64";
 
 export async function* readBookmarkFiles(directory: string) {
   const regexToRemoveSubDomain = new RegExp("//fr.");
@@ -28,19 +29,40 @@ export async function* readBookmarkFiles(directory: string) {
 
 const MAX_REDIRECTS = 5;
 
-export async function fetchData(url: string, redirectCount = 0) {
+async function fetchFavicon(url: string) {
+  const urlObject = new URL(url);
+
+  // https://www.google.com/s2/favicons?domain=${domain}&sz=${size}
+  const faviconUrl = new URL("https://www.google.com/s2/favicons");
+  faviconUrl.searchParams.set("domain", urlObject.hostname);
+  faviconUrl.searchParams.set("sz", "128");
+
+  const result = await fetch(faviconUrl);
+  const faviconBytes = await result.arrayBuffer();
+  return `data:image/png;base64,${encodeBase64(faviconBytes)}`;
+}
+
+export async function fetchPage(url: string, redirectCount = 0) {
   if (MAX_REDIRECTS < redirectCount) {
     throw new Error("Too many redirects");
   }
 
   const result = await fetch(url, { redirect: "follow" });
   if (result.redirected) {
-    return await fetchData(result.url, ++redirectCount);
+    return await fetchPage(result.url, ++redirectCount);
   }
+
+  const [pageContent, favicon] = await Promise.all([
+    result.text(),
+    fetchFavicon(url),
+  ]);
 
   // if (!result.ok) {
   //   throw new Error(`Invalid URL with status ${result.status} (${result.statusText})`);
   // }
 
-  return { result: await result.text(), url };
+  return { result: pageContent, url, favicon };
+}
+
+export function generateBookmarks(urls: string[]): string {
 }
