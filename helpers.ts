@@ -25,3 +25,22 @@ export async function* readBookmarkFiles(directory: string) {
     yield uniqueAnchorList;
   }
 }
+
+const MAX_REDIRECTS = 5;
+
+export async function fetchData(url: string, redirectCount = 0) {
+  if (MAX_REDIRECTS < redirectCount) {
+    throw new Error("Too many redirects");
+  }
+
+  const result = await fetch(url, { redirect: "follow" });
+  if (result.redirected) {
+    return await fetchData(result.url, ++redirectCount);
+  }
+
+  // if (!result.ok) {
+  //   throw new Error(`Invalid URL with status ${result.status} (${result.statusText})`);
+  // }
+
+  return { result: await result.text(), url };
+}
