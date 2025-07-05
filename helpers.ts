@@ -50,7 +50,9 @@ export async function fetchPage(url: string, redirectCount = 0) {
 
   const urlObj = new URL(url);
 
-  const result = await fetch(urlObj.toString(), { redirect: "follow" });
+  const result = await fetch(urlObj.toString(), { redirect: "follow", headers: {
+    "Accept-Language": "fr-FR"
+  } });
   if (result.redirected) {
     // console.log(result.url)
     const newUrl = new URL(result.url);
