@@ -47,9 +47,14 @@ export async function fetchPage(url: string, redirectCount = 0) {
     throw new Error("Too many redirects");
   }
 
-  const result = await fetch(url, { redirect: "follow" });
+  const urlObj = new URL(url);
+
+  const result = await fetch(urlObj.toString(), { redirect: "follow" });
   if (result.redirected) {
-    return await fetchPage(result.url, ++redirectCount);
+    // console.log(result.url)
+    const newUrl = new URL(result.url);
+    newUrl.hash = urlObj.hash;
+    return await fetchPage(newUrl.toString(), ++redirectCount);
   }
 
   const [pageContent, favicon] = await Promise.all([
