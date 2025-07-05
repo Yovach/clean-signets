@@ -1,1 +1,4 @@
-tmp/
+input/
+output/
+
+!**/.gitkeep
