@@ -1,5 +1,3 @@
-import * as path from "jsr:@std/path";
-
 import { parse, stringify } from "superjson";
 import { ulid } from "@std/ulid";
 
@@ -10,13 +8,17 @@ import {
   readBookmarkFiles,
 } from "./helpers.ts";
 import { BookmarkDataListType, bookmarkElementListSchema } from "./schema.ts";
+import path from "node:path";
+import { readFile, writeFile } from "node:fs/promises";
 
-const directory = path.join("./input");
+const directory = path.join("./input/**.html");
 const tmpFile = path.join("tmp", "cache.tmp");
 let cacheFileContent: string | null = null;
 try {
-  cacheFileContent = Deno.readTextFileSync(tmpFile);
-} catch (e) {}
+  cacheFileContent = await readFile(tmpFile, { encoding: "utf8" });
+} catch (e) {
+  console.log(e);
+}
 
 for await (const uniqueAnchorList of readBookmarkFiles(directory)) {
   let bookmarkElements: BookmarkDataListType = [];
@@ -47,7 +49,7 @@ for await (const uniqueAnchorList of readBookmarkFiles(directory)) {
         favicon: result.favicon,
       });
 
-      await Deno.writeTextFile(tmpFile, stringify(bookmarkElements));
+      await writeFile(tmpFile, stringify(bookmarkElements));
     } catch (e) {
       if (e instanceof Error) {
         console.error(`${url} is error : ${e.message}`);
@@ -56,7 +58,7 @@ for await (const uniqueAnchorList of readBookmarkFiles(directory)) {
     }
   }
 
-  await Deno.writeTextFile(
+  await writeFile(
     path.join("output", ulid() + ".html"),
     generateBookmarks(bookmarkElements),
   );

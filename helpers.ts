@@ -1,16 +1,17 @@
-import * as path from "jsr:@std/path";
 import { JSDOM } from "npm:jsdom";
 import { encodeBase64 } from "jsr:@std/encoding/base64";
 import { BookmarkDataListType } from "./schema.ts";
+import { glob, readFile } from "node:fs/promises";
 
-export async function* readBookmarkFiles(directory: string) {
+export async function* readBookmarkFiles(pattern: string) {
   const regexToRemoveSubDomain = new RegExp("//fr.");
 
-  for await (const file of Deno.readDir(directory)) {
+  for await (const filepath of glob(pattern)) {
     const uniqueAnchorList = new Set<string>();
-    const filepath = path.join(directory, file.name);
 
-    const filecontent = await Deno.readTextFile(filepath);
+    const filecontent = await readFile(filepath, {
+      encoding: "utf8",
+    });
 
     const parsedDom = new JSDOM(filecontent);
     const document = parsedDom.window.document;
@@ -94,9 +95,12 @@ export function getTitleAndDescriptionFromPage(page: string): BookmarkData {
 
 export function generateBookmarks(elements: BookmarkDataListType): string {
   const date = Math.floor(Date.now() / 1000).toString();
-  const bookmarksList = elements.map((bookmark) =>
-    `        <DT><A HREF="${bookmark.url}" ADD_DATE="${date}" ICON="${bookmark.favicon}">${bookmark.title}</A>`
-  ).join("\n");
+  const bookmarksList = elements
+    .map(
+      (bookmark) =>
+        `        <DT><A HREF="${bookmark.url}" ADD_DATE="${date}" ICON="${bookmark.favicon}">${bookmark.title}</A>`,
+    )
+    .join("\n");
 
   return `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <!-- This is an automatically generated file.
