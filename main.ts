@@ -4,12 +4,12 @@ import { parse, stringify } from "superjson";
 import { ulid } from "@std/ulid";
 
 import {
-  fetchPage,
+fetchPage,
+  generateBookmarks,
   getTitleAndDescriptionFromPage,
   readBookmarkFiles,
 } from "./helpers.ts";
-import { bookmarkElementListSchema } from "./schema.ts";
-import { z } from "zod/v4";
+import { BookmarkDataListType, bookmarkElementListSchema } from "./schema.ts";
 
 const directory = path.join("./input");
 
@@ -20,10 +20,10 @@ try {
 } catch (e) {}
 
 for await (const uniqueAnchorList of readBookmarkFiles(directory)) {
-  let bookmarkElements: z.output<typeof bookmarkElementListSchema> = [];
+  let bookmarkElements: BookmarkDataListType = [];
   if (cacheFileContent !== null) {
     const parsedFileContent = bookmarkElementListSchema.safeParse(
-      parse(cacheFileContent)
+      parse(cacheFileContent),
     );
     if (parsedFileContent.success) {
       bookmarkElements = parsedFileContent.data;
@@ -38,7 +38,7 @@ for await (const uniqueAnchorList of readBookmarkFiles(directory)) {
       }
 
       const { title, description } = getTitleAndDescriptionFromPage(
-        result.pageContent
+        result.pageContent,
       );
 
       bookmarkElements.push({
@@ -58,4 +58,9 @@ for await (const uniqueAnchorList of readBookmarkFiles(directory)) {
   }
 
   console.log(bookmarkElements);
+
+  await Deno.writeTextFile(
+    path.join("output", ulid() + ".html"),
+    generateBookmarks(bookmarkElements),
+  );
 }

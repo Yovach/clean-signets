@@ -8,3 +8,6 @@ export const bookmarkElementSchema = z.object({
 });
 
 export const bookmarkElementListSchema = z.array(bookmarkElementSchema);
+
+export type BookmarkDataType = z.infer<typeof bookmarkElementSchema>;
+export type BookmarkDataListType = z.infer<typeof bookmarkElementListSchema>;

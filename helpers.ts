@@ -1,6 +1,7 @@
 import * as path from "jsr:@std/path";
 import { JSDOM } from "npm:jsdom";
 import { encodeBase64 } from "jsr:@std/encoding/base64";
+import { BookmarkDataListType } from "./schema.ts";
 
 export async function* readBookmarkFiles(directory: string) {
   const regexToRemoveSubDomain = new RegExp("//fr.");
@@ -84,4 +85,23 @@ export function getTitleAndDescriptionFromPage(page: string): BookmarkData {
   };
 }
 
-export function generateBookmarks(urls: string[]): string {}
+export function generateBookmarks(elements: BookmarkDataListType): string {
+    const date = Math.floor(Date.now() / 1000).toString();
+    const bookmarksList = elements.map(bookmark =>
+        `        <DT><A HREF="${bookmark.url}" ADD_DATE="${date}" ICON="${bookmark.favicon}">${bookmark.title}</A>`
+    ).join('\n');
+
+    return `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+     It will be read and overwritten.
+     DO NOT EDIT! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+    <DT><H3 ADD_DATE="1743102788" LAST_MODIFIED="${date}" PERSONAL_TOOLBAR_FOLDER="true">Signets</H3>
+    <DL><p>
+${bookmarksList}
+    </DL><p>
+</DL><p>`;
+}
