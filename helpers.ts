@@ -50,9 +50,14 @@ export async function fetchPage(url: string, redirectCount = 0) {
 
   const urlObj = new URL(url);
 
-  const result = await fetch(urlObj.toString(), { redirect: "follow", headers: {
-    "Accept-Language": "fr-FR"
-  } });
+  console.log(`Call ${urlObj.toString()}`);
+  const result = await fetch(urlObj.toString(), {
+    redirect: "follow",
+    headers: {
+      "Accept-Language": "fr-FR",
+    },
+    signal: AbortSignal.timeout(5000),
+  });
   if (result.redirected) {
     // console.log(result.url)
     const newUrl = new URL(result.url);
@@ -78,7 +83,7 @@ interface BookmarkData {
 }
 
 export function getTitleAndDescriptionFromPage(page: string): BookmarkData {
-  const jsdom = new JSDOM(page, {pretendToBeVisual: true});
+  const jsdom = new JSDOM(page, { pretendToBeVisual: true });
   const document = jsdom.window.document;
   return {
     title: document.title,
@@ -88,12 +93,12 @@ export function getTitleAndDescriptionFromPage(page: string): BookmarkData {
 }
 
 export function generateBookmarks(elements: BookmarkDataListType): string {
-    const date = Math.floor(Date.now() / 1000).toString();
-    const bookmarksList = elements.map(bookmark =>
-        `        <DT><A HREF="${bookmark.url}" ADD_DATE="${date}" ICON="${bookmark.favicon}">${bookmark.title}</A>`
-    ).join('\n');
+  const date = Math.floor(Date.now() / 1000).toString();
+  const bookmarksList = elements.map((bookmark) =>
+    `        <DT><A HREF="${bookmark.url}" ADD_DATE="${date}" ICON="${bookmark.favicon}">${bookmark.title}</A>`
+  ).join("\n");
 
-    return `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+  return `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <!-- This is an automatically generated file.
      It will be read and overwritten.
      DO NOT EDIT! -->
