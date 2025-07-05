@@ -4,7 +4,7 @@ import { parse, stringify } from "superjson";
 import { ulid } from "@std/ulid";
 
 import {
-fetchPage,
+  fetchPage,
   generateBookmarks,
   getTitleAndDescriptionFromPage,
   readBookmarkFiles,
@@ -12,7 +12,6 @@ fetchPage,
 import { BookmarkDataListType, bookmarkElementListSchema } from "./schema.ts";
 
 const directory = path.join("./input");
-
 const tmpFile = path.join("tmp", "cache.tmp");
 let cacheFileContent: string | null = null;
 try {
@@ -56,8 +55,6 @@ for await (const uniqueAnchorList of readBookmarkFiles(directory)) {
       }
     }
   }
-
-  console.log(bookmarkElements);
 
   await Deno.writeTextFile(
     path.join("output", ulid() + ".html"),
