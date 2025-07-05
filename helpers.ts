@@ -61,8 +61,22 @@ export async function fetchPage(url: string, redirectCount = 0) {
   //   throw new Error(`Invalid URL with status ${result.status} (${result.statusText})`);
   // }
 
-  return { result: pageContent, url, favicon };
+  return { pageContent, url, favicon };
 }
 
-export function generateBookmarks(urls: string[]): string {
+interface BookmarkData {
+  title: string;
+  description: string | undefined | null;
 }
+
+export function getTitleAndDescriptionFromPage(page: string): BookmarkData {
+  const jsdom = new JSDOM(page, {pretendToBeVisual: true});
+  const document = jsdom.window.document;
+  return {
+    title: document.title,
+    description: document.querySelector('meta[name="description"]')
+      ?.textContent,
+  };
+}
+
+export function generateBookmarks(urls: string[]): string {}
